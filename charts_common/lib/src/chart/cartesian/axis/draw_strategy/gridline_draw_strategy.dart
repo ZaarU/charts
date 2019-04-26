@@ -144,6 +144,13 @@ class GridlineTickDrawStrategy<D> extends BaseTickDrawStrategy<D> {
         lineEnd = new Point(drawAreaBounds.left, y);
         break;
       case AxisOrientation.left:
+        if (tick.locationPx < 0) {
+          tick.locationPx = 0;
+        }
+
+        if (tick.locationPx > drawAreaBounds.height) {
+          tick.locationPx = drawAreaBounds.bottom.toDouble();
+        }
         final y = tick.locationPx;
 
         if (tickLabelAnchor == TickLabelAnchor.after ||
