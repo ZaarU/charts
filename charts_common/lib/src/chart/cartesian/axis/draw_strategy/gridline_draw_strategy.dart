@@ -151,6 +151,7 @@ class GridlineTickDrawStrategy<D> extends BaseTickDrawStrategy<D> {
         if (tick.locationPx > drawAreaBounds.height) {
           tick.locationPx = drawAreaBounds.bottom.toDouble();
         }
+        
         final y = tick.locationPx;
 
         if (tickLabelAnchor == TickLabelAnchor.after ||
