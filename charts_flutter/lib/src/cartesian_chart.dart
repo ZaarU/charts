@@ -39,6 +39,7 @@ abstract class CartesianChart<D> extends BaseChart<D> {
   final common.AxisSpec secondaryMeasureAxis;
   final LinkedHashMap<String, common.NumericAxisSpec> disjointMeasureAxes;
   final bool flipVerticalAxis;
+  final bool flipAxisY;
 
   CartesianChart(
     List<common.Series<dynamic, D>> seriesList, {
@@ -57,6 +58,7 @@ abstract class CartesianChart<D> extends BaseChart<D> {
     LayoutConfig layoutConfig,
     UserManagedState userManagedState,
     this.flipVerticalAxis,
+    this.flipAxisY,
   }) : super(
           seriesList,
           animate: animate,
@@ -81,6 +83,10 @@ abstract class CartesianChart<D> extends BaseChart<D> {
 
     if (flipVerticalAxis != null) {
       chart.flipVerticalAxisOutput = flipVerticalAxis;
+    }
+      
+    if (flipAxisY != null) {
+      chart.flipAxisY = flipAxisY;
     }
 
     if (domainAxis != null && domainAxis != prev?.domainAxis) {
