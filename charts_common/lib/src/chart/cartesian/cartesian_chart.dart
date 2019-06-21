@@ -134,7 +134,11 @@ abstract class CartesianChart<D> extends BaseChart<D> {
   /// If set to true, the vertical axis will render the opposite of the default
   /// direction.
   bool flipVerticalAxisOutput = false;
-
+    
+  /// If set to true, the vertical axis will be rendered on the opposite side of default location
+  ///Default is on the left side (if direction is ltr)
+  bool flipAxisY = false;
+    
   bool _usePrimaryMeasureAxis = false;
   bool _useSecondaryMeasureAxis = false;
 
@@ -352,22 +356,28 @@ abstract class CartesianChart<D> extends BaseChart<D> {
         ..reverseOutputRange = reverseAxisDirection;
 
       _primaryMeasureAxis
-        ..axisOrientation = (reverseAxisDirection
+        ..axisOrientation = (flipAxisY ? (reverseAxisDirection
+            ? AxisOrientation.left
+            : AxisOrientation.right) : (reverseAxisDirection
             ? AxisOrientation.right
-            : AxisOrientation.left)
+            : AxisOrientation.left))
         ..reverseOutputRange = flipVerticalAxisOutput;
 
       _secondaryMeasureAxis
-        ..axisOrientation = (reverseAxisDirection
+        ..axisOrientation = (flipAxisY ? (reverseAxisDirection
             ? AxisOrientation.left
-            : AxisOrientation.right)
+            : AxisOrientation.right) : (reverseAxisDirection
+            ? AxisOrientation.right
+            : AxisOrientation.left))
         ..reverseOutputRange = flipVerticalAxisOutput;
 
-      _disjointMeasureAxes.forEach((String axisId, NumericAxis axis) {
+     _disjointMeasureAxes.forEach((String axisId, NumericAxis axis) {
         axis
-          ..axisOrientation = (reverseAxisDirection
-              ? AxisOrientation.left
-              : AxisOrientation.right)
+          ..axisOrientation = (flipAxisY ? (reverseAxisDirection
+            ? AxisOrientation.left
+            : AxisOrientation.right) : (reverseAxisDirection
+            ? AxisOrientation.right
+            : AxisOrientation.left))
           ..reverseOutputRange = flipVerticalAxisOutput;
       });
     } else {
