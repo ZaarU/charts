@@ -52,7 +52,7 @@ class TimeSeriesChart extends CartesianChart<DateTime> {
     List<SelectionModelConfig<DateTime>> selectionModels,
     LayoutConfig layoutConfig,
     this.dateTimeFactory,
-    bool defaultInteractions: true,
+    bool defaultInteractions = true,
     bool flipVerticalAxis,
     bool flipAxisY,
     UserManagedState<DateTime> userManagedState,

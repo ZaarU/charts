@@ -1,5 +1,8 @@
 name: charts_flutter
-version: 0.6.0
+version: 0.8.1
+description: Material Design charting library for flutter.
+author: Charts Team <charts_flutter@google.com>
+homepage: https://github.com/google/charts
 
 environment:
   sdk: '>=1.23.0 <3.0.0'
@@ -10,7 +13,7 @@ dependencies:
   #
   # The pub version of charts_flutter will point to the pub version of charts_common.
   # The latest pub version is commented out and shown below as an example.
-  # charts_common: 0.6.0
+  # charts_common: 0.8.1
   charts_common:
     git:
       url: https://github.com/ZaarU/charts
@@ -18,7 +21,7 @@ dependencies:
   collection: ^1.14.5
   flutter:
     sdk: flutter
-  intl: ^0.15.2
+  intl: '>=0.15.2 < 0.17.0'
   logging: any
   meta: ^1.1.1
 

@@ -17,14 +17,33 @@ import 'package:meta/meta.dart';
 
 import '../chart/cartesian/axis/spec/axis_spec.dart' show TextStyleSpec;
 import '../chart/common/chart_canvas.dart' show FillPatternType;
+import '../chart/common/datum_details.dart'
+    show DomainFormatter, MeasureFormatter;
 import '../common/color.dart' show Color;
 import '../common/typed_registry.dart' show TypedRegistry, TypedKey;
 
 class Series<T, D> {
   final String id;
   final String displayName;
-  final String seriesCategory;
+
+  /// Overlay series provided supplemental information on a chart, but are not
+  /// considered to be primary data. They should not be selectable by user
+  /// interaction.
   final bool overlaySeries;
+
+  final String seriesCategory;
+
+  /// Color which represents the entire series in legends.
+  ///
+  /// If this is not provided in the original series object, it will be inferred
+  /// from the color of the first datum in the series.
+  ///
+  /// If this is provided, but no [colorFn] is provided, then it will be treated
+  /// as the color for each datum in the series.
+  ///
+  /// If neither are provided, then the chart will insert colors for each series
+  /// on the chart using a mapping function.
+  final Color seriesColor;
 
   final List<T> data;
 
@@ -38,9 +57,11 @@ class Series<T, D> {
   final AccessorFn<String> keyFn;
 
   final AccessorFn<D> domainFn;
+  final AccessorFn<DomainFormatter<D>> domainFormatterFn;
   final AccessorFn<D> domainLowerBoundFn;
   final AccessorFn<D> domainUpperBoundFn;
   final AccessorFn<num> measureFn;
+  final AccessorFn<MeasureFormatter> measureFormatterFn;
   final AccessorFn<num> measureLowerBoundFn;
   final AccessorFn<num> measureUpperBoundFn;
   final AccessorFn<num> measureOffsetFn;
@@ -54,6 +75,11 @@ class Series<T, D> {
   final AccessorFn<Color> areaColorFn;
 
   /// [colorFn] returns the rendered stroke color for a given data value.
+  ///
+  /// If this is not provided, then [seriesColor] will be used for every datum.
+  ///
+  /// If neither are provided, then the chart will insert colors for each series
+  /// on the chart using a mapping function.
   final AccessorFn<Color> colorFn;
 
   /// [dashPatternFn] returns the dash pattern for a given data value.
@@ -62,6 +88,11 @@ class Series<T, D> {
   /// [fillColorFn] returns the rendered fill color for a given data value. If
   /// not provided, then [colorFn] will be used as a fallback.
   final AccessorFn<Color> fillColorFn;
+
+  /// [patternColorFn] returns the background color of tile when a
+  /// [FillPatternType] beside `solid` is used. If not provided, then
+  /// background color is used.
+  final AccessorFn<Color> patternColorFn;
 
   final AccessorFn<FillPatternType> fillPatternFn;
   final AccessorFn<num> radiusPxFn;
@@ -80,17 +111,21 @@ class Series<T, D> {
       @required TypedAccessorFn<T, D> domainFn,
       @required TypedAccessorFn<T, num> measureFn,
       String displayName,
+      Color seriesColor,
       TypedAccessorFn<T, Color> areaColorFn,
       TypedAccessorFn<T, Color> colorFn,
       TypedAccessorFn<T, List<int>> dashPatternFn,
+      TypedAccessorFn<T, DomainFormatter<D>> domainFormatterFn,
       TypedAccessorFn<T, D> domainLowerBoundFn,
       TypedAccessorFn<T, D> domainUpperBoundFn,
       TypedAccessorFn<T, Color> fillColorFn,
+      TypedAccessorFn<T, Color> patternColorFn,
       TypedAccessorFn<T, FillPatternType> fillPatternFn,
       TypedAccessorFn<T, String> keyFn,
       TypedAccessorFn<T, String> labelAccessorFn,
       TypedAccessorFn<T, TextStyleSpec> insideLabelStyleAccessorFn,
       TypedAccessorFn<T, TextStyleSpec> outsideLabelStyleAccessorFn,
+      TypedAccessorFn<T, MeasureFormatter> measureFormatterFn,
       TypedAccessorFn<T, num> measureLowerBoundFn,
       TypedAccessorFn<T, num> measureUpperBoundFn,
       TypedAccessorFn<T, num> measureOffsetFn,
@@ -109,6 +144,9 @@ class Series<T, D> {
     final _dashPatternFn = dashPatternFn == null
         ? null
         : (int index) => dashPatternFn(data[index], index);
+    final _domainFormatterFn = domainFormatterFn == null
+        ? null
+        : (int index) => domainFormatterFn(data[index], index);
     final _domainLowerBoundFn = domainLowerBoundFn == null
         ? null
         : (int index) => domainLowerBoundFn(data[index], index);
@@ -118,6 +156,9 @@ class Series<T, D> {
     final _fillColorFn = fillColorFn == null
         ? null
         : (int index) => fillColorFn(data[index], index);
+    final _patternColorFn = patternColorFn == null
+        ? null
+        : (int index) => patternColorFn(data[index], index);
     final _fillPatternFn = fillPatternFn == null
         ? null
         : (int index) => fillPatternFn(data[index], index);
@@ -130,6 +171,9 @@ class Series<T, D> {
     final _outsideLabelStyleAccessorFn = outsideLabelStyleAccessorFn == null
         ? null
         : (int index) => outsideLabelStyleAccessorFn(data[index], index);
+    final _measureFormatterFn = measureFormatterFn == null
+        ? null
+        : (int index) => measureFormatterFn(data[index], index);
     final _measureLowerBoundFn = measureLowerBoundFn == null
         ? null
         : (int index) => measureLowerBoundFn(data[index], index);
@@ -155,19 +199,23 @@ class Series<T, D> {
       areaColorFn: _areaColorFn,
       colorFn: _colorFn,
       dashPatternFn: _dashPatternFn,
+      domainFormatterFn: _domainFormatterFn,
       domainLowerBoundFn: _domainLowerBoundFn,
       domainUpperBoundFn: _domainUpperBoundFn,
       fillColorFn: _fillColorFn,
       fillPatternFn: _fillPatternFn,
+      patternColorFn: _patternColorFn,
       labelAccessorFn: _labelAccessorFn,
       insideLabelStyleAccessorFn: _insideLabelStyleAccessorFn,
       outsideLabelStyleAccessorFn: _outsideLabelStyleAccessorFn,
+      measureFormatterFn: _measureFormatterFn,
       measureLowerBoundFn: _measureLowerBoundFn,
       measureUpperBoundFn: _measureUpperBoundFn,
       measureOffsetFn: _measureOffsetFn,
       overlaySeries: overlaySeries,
       radiusPxFn: _radiusPxFn,
       seriesCategory: seriesCategory,
+      seriesColor: seriesColor,
       strokeWidthPxFn: _strokeWidthPxFn,
     );
   }
@@ -181,20 +229,24 @@ class Series<T, D> {
     this.areaColorFn,
     this.colorFn,
     this.dashPatternFn,
+    this.domainFormatterFn,
     this.domainLowerBoundFn,
     this.domainUpperBoundFn,
     this.fillColorFn,
     this.fillPatternFn,
+    this.patternColorFn,
     this.keyFn,
     this.labelAccessorFn,
     this.insideLabelStyleAccessorFn,
     this.outsideLabelStyleAccessorFn,
+    this.measureFormatterFn,
     this.measureLowerBoundFn,
     this.measureUpperBoundFn,
     this.measureOffsetFn,
     this.overlaySeries = false,
     this.radiusPxFn,
     this.seriesCategory,
+    this.seriesColor,
     this.strokeWidthPxFn,
   });
 
